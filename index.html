@@ -57,11 +57,10 @@
     }
 
     button {
-        padding: 12px 20px;
-        margin-top: 15px;
+        padding: 8px 16px;
         border: none;
         border-radius: 8px;
-        font-size: 1rem;
+        font-size: 0.9rem;
         cursor: pointer;
     }
 
@@ -69,11 +68,20 @@
         background: #2563eb;
         color: white;
         width: 100%;
+        margin-top: 15px;
+        padding: 12px;
+        font-size: 1rem;
     }
 
     .btn-danger {
         background: #dc2626;
         color: white;
+    }
+
+    .btn-sell {
+        background: #0ea5e9;
+        color: white;
+        font-size: 0.9rem;
     }
 
     table {
@@ -134,7 +142,7 @@
             <option>Otros</option>
         </select>
 
-        <label>Cantidad:</label>
+        <label>Cantidad en almacén:</label>
         <input id="cantidad" type="number" placeholder="Ej. 12">
 
         <label>Mínimo en almacén (stock mínimo):</label>
@@ -155,9 +163,11 @@
                 <tr>
                     <th>Nombre</th>
                     <th>Categoría</th>
-                    <th>Cantidad</th>
+                    <th>En almacén</th>
+                    <th>Vendidas</th>
                     <th>Mínimo</th>
                     <th>Estado</th>
+                    <th>Venta</th>
                     <th>Eliminar</th>
                 </tr>
             </thead>
@@ -185,7 +195,7 @@ function agregar() {
         return;
     }
 
-    inventario.push({ nombre, categoria, cantidad, minimo });
+    inventario.push({ nombre, categoria, cantidad, minimo, vendidas: 0 });
     guardar();
 
     document.getElementById("msg").innerHTML =
@@ -196,6 +206,17 @@ function agregar() {
     document.getElementById("minimo").value = "";
 
     mostrarInventario();
+}
+
+function vender(i) {
+    if (inventario[i].cantidad > 0) {
+        inventario[i].cantidad -= 1;
+        inventario[i].vendidas += 1;
+        guardar();
+        mostrarInventario();
+    } else {
+        alert("No hay unidades suficientes para vender.");
+    }
 }
 
 function eliminar(i) {
@@ -221,11 +242,11 @@ function mostrarInventario() {
                     <td>${ref.nombre}</td>
                     <td>${ref.categoria}</td>
                     <td>${ref.cantidad}</td>
+                    <td>${ref.vendidas}</td>
                     <td>${ref.minimo}</td>
                     <td>${estado}</td>
-                    <td>
-                        <button class="btn-danger" onclick="eliminar(${i})">X</button>
-                    </td>
+                    <td><button class="btn-sell" onclick="vender(${i})">Vender</button></td>
+                    <td><button class="btn-danger" onclick="eliminar(${i})">X</button></td>
                 </tr>
             `;
         }
@@ -237,3 +258,4 @@ mostrarInventario();
 
 </body>
 </html>
+
