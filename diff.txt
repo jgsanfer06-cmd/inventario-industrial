@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inventario Industrial - Industria 4.0</title>
+
+<style>
+    body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: #f1f5f9;
+        color: #0f172a;
+    }
+
+    header {
+        background: #ffffff;
+        padding: 20px;
+        text-align: center;
+        border-bottom: 1px solid #cbd5e1;
+        box-shadow: 0px 2px 6px rgba(0,0,0,0.05);
+    }
+
+    .container {
+        max-width: 1000px;
+        margin: 20px auto;
+        padding: 0 15px;
+    }
+
+    .card {
+        background: #ffffff;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0px 4px 12px rgba(0,0,0,0.07);
+        margin-bottom: 20px;
+    }
+
+    h1, h2 {
+        margin: 0;
+        padding-bottom: 10px;
+        color: #1e293b;
+    }
+
+    label {
+        font-weight: bold;
+        display: block;
+        margin-top: 12px;
+    }
+
+    input, select {
+        width: 100%;
+        padding: 10px;
+        margin-top: 6px;
+        border: 1px solid #94a3b8;
+        border-radius: 8px;
+        font-size: 1rem;
+    }
+
+    button {
+        padding: 12px 20px;
+        margin-top: 15px;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        cursor: pointer;
+    }
+
+    .btn-primary {
+        background: #2563eb;
+        color: white;
+        width: 100%;
+    }
+
+    .btn-danger {
+        background: #dc2626;
+        color: white;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+    }
+
+    th, td {
+        border-bottom: 1px solid #cbd5e1;
+        padding: 10px;
+        text-align: left;
+    }
+
+    th {
+        background: #e2e8f0;
+    }
+
+    .low-stock {
+        color: #dc2626;
+        font-weight: bold;
+    }
+
+    .success {
+        background: #d1fae5;
+        padding: 12px;
+        border-left: 5px solid #059669;
+        margin-top: 15px;
+        border-radius: 8px;
+    }
+</style>
+
+</head>
+<body>
+
+<header>
+    <h1>Inventario de Refacciones Industriales</h1>
+    <p>Sistema Web - Industria 4.0</p>
+</header>
+
+<div class="container">
+
+    <div class="card">
+        <h2>Agregar Refacción</h2>
+
+        <label>Nombre de la refacción:</label>
+        <input id="nombre" placeholder="Ej. Rodamiento 6204, Banda B45…">
+
+        <label>Categoría:</label>
+        <select id="categoria">
+            <option>Engranes</option>
+            <option>Rondamientos</option>
+            <option>Bandas</option>
+            <option>Válvulas</option>
+            <option>Sensores</option>
+            <option>Eléctrico</option>
+            <option>Hidráulico</option>
+            <option>Otros</option>
+        </select>
+
+        <label>Cantidad:</label>
+        <input id="cantidad" type="number" placeholder="Ej. 12">
+
+        <label>Mínimo en almacén (stock mínimo):</label>
+        <input id="minimo" type="number" placeholder="Ej. 5">
+
+        <button class="btn-primary" onclick="agregar()">Agregar al Inventario</button>
+
+        <div id="msg"></div>
+    </div>
+
+    <div class="card">
+        <h2>Listado del Inventario</h2>
+
+        <input id="buscar" placeholder="Buscar refacción..." onkeyup="mostrarInventario()">
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Categoría</th>
+                    <th>Cantidad</th>
+                    <th>Mínimo</th>
+                    <th>Estado</th>
+                    <th>Eliminar</th>
+                </tr>
+            </thead>
+            <tbody id="tabla"></tbody>
+        </table>
+    </div>
+
+</div>
+
+<script>
+let inventario = JSON.parse(localStorage.getItem("inventario_industrial") || "[]");
+
+function guardar() {
+    localStorage.setItem("inventario_industrial", JSON.stringify(inventario));
+}
+
+function agregar() {
+    let nombre = document.getElementById("nombre").value;
+    let categoria = document.getElementById("categoria").value;
+    let cantidad = Number(document.getElementById("cantidad").value);
+    let minimo = Number(document.getElementById("minimo").value);
+
+    if (!nombre || cantidad <= 0 || minimo < 0) {
+        alert("Completa todos los campos correctamente.");
+        return;
+    }
+
+    inventario.push({ nombre, categoria, cantidad, minimo });
+    guardar();
+
+    document.getElementById("msg").innerHTML =
+        `<div class='success'>Refacción agregada correctamente ✔</div>`;
+
+    document.getElementById("nombre").value = "";
+    document.getElementById("cantidad").value = "";
+    document.getElementById("minimo").value = "";
+
+    mostrarInventario();
+}
+
+function eliminar(i) {
+    inventario.splice(i, 1);
+    guardar();
+    mostrarInventario();
+}
+
+function mostrarInventario() {
+    let texto = document.getElementById("buscar").value.toLowerCase();
+    let tabla = document.getElementById("tabla");
+    tabla.innerHTML = "";
+
+    inventario.forEach((ref, i) => {
+        if (ref.nombre.toLowerCase().includes(texto)) {
+
+            let estado = ref.cantidad <= ref.minimo ?
+                "<span class='low-stock'>Bajo Stock</span>" :
+                "Correcto";
+
+            tabla.innerHTML += `
+                <tr>
+                    <td>${ref.nombre}</td>
+                    <td>${ref.categoria}</td>
+                    <td>${ref.cantidad}</td>
+                    <td>${ref.minimo}</td>
+                    <td>${estado}</td>
+                    <td>
+                        <button class="btn-danger" onclick="eliminar(${i})">X</button>
+                    </td>
+                </tr>
+            `;
+        }
+    });
+}
+
+mostrarInventario();
+</script>
+
+</body>
+</html>
